@@ -8,6 +8,9 @@ const app = express();
 app.use(cors());           // allow frontend to call this API
 app.use(express.json());   // read JSON sent in request body
 
+const opportunityRoutes = require("./routes/opportunities");
+app.use("/api/opportunities", opportunityRoutes);
+
 // Test route: checks that the database is reachable
 app.get("/api/health", async (req, res) => {
   try {

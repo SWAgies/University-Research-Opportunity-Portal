@@ -1,0 +1,69 @@
+const express = require("express");
+const pool = require("../db");
+
+const router = express.Router();
+const REQUIRED_FIELDS = [
+  "title",
+  "description",
+  "research_area",
+  "faculty_name",
+  "department",
+  "required_skills",
+  "positions",
+  "deadline",
+];
+
+function validate(body) {
+  const errors = [];
+
+  for (const field of REQUIRED_FIELDS) {
+    if (body[field] === undefined || body[field] === null || String(body[field]).trim() === "") {
+      errors.push(`${field} is required`);
+    }
+  }
+
+  if (body.positions !== undefined && (!Number.isInteger(Number(body.positions)) || Number(body.positions) < 1)) {
+    errors.push("positions must be a whole number of at least 1");
+  }
+
+  if (body.deadline && isNaN(Date.parse(body.deadline))) {
+    errors.push("deadline must be a valid date (YYYY-MM-DD)");
+  }
+
+  if (body.status && !["Open", "Closed"].includes(body.status)) {
+    errors.push("status must be Open or Closed");
+  }
+
+  return errors;
+}
+
+// CREATE
+router.post("/", async (req, res) => {
+  const errors = validate(req.body);
+  if (errors.length > 0) {
+    return res.status(400).json({ errors });
+  }
+
+  const {
+    title, description, research_area, faculty_name,
+    department, required_skills, positions, deadline,
+  } = req.body;
+  const status = req.body.status || "Open";
+
+  try {
+    const [result] = await pool.query(
+      `INSERT INTO opportunities
+       (title, description, research_area, faculty_name, department, required_skills, positions, deadline, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, description, research_area, faculty_name, department, required_skills, positions, deadline, status]
+    );
+
+    const [rows] = await pool.query("SELECT * FROM opportunities WHERE id = ?", [result.insertId]);
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error while creating opportunity" });
+  }
+});
+
+module.exports = router;
