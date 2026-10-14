@@ -154,4 +154,29 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Server error while deleting opportunity" });
   }
 });
+// CLOSE (change only the status)
+router.patch("/:id/status", async (req, res) => {
+  const { status } = req.body;
+
+  if (!["Open", "Closed"].includes(status)) {
+    return res.status(400).json({ errors: ["status must be Open or Closed"] });
+  }
+
+  try {
+    const [result] = await pool.query(
+      "UPDATE opportunities SET status = ? WHERE id = ?",
+      [status, req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Opportunity not found" });
+    }
+
+    const [rows] = await pool.query("SELECT * FROM opportunities WHERE id = ?", [req.params.id]);
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error while updating status" });
+  }
+});
 module.exports = router;
