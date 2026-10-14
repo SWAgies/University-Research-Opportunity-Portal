@@ -124,5 +124,34 @@ router.put("/:id", async (req, res) => {
     res.status(500).json({ error: "Server error while updating opportunity" });
   }
 });
+// DELETE
+router.delete("/:id", async (req, res) => {
+  try {
+    const [result] = await pool.query("DELETE FROM opportunities WHERE id = ?", [req.params.id]);
 
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Opportunity not found" });
+    }
+
+    res.status(200).json({ message: "Opportunity deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error while deleting opportunity" });
+  }
+});
+// DELETE
+router.delete("/:id", async (req, res) => {
+  try {
+    const [result] = await pool.query("DELETE FROM opportunities WHERE id = ?", [req.params.id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Opportunity not found" });
+    }
+
+    res.status(200).json({ message: "Opportunity deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error while deleting opportunity" });
+  }
+});
 module.exports = router;
