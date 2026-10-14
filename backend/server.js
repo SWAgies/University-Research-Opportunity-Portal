@@ -10,7 +10,19 @@ app.use(express.json());   // read JSON sent in request body
 
 const opportunityRoutes = require("./routes/opportunities");
 app.use("/api/opportunities", opportunityRoutes);
+// Unknown route -> 404
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
 
+// Broken JSON or other unexpected error -> 400 / 500
+app.use((err, req, res, next) => {
+  if (err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "Invalid JSON in request body" });
+  }
+  console.error(err);
+  res.status(500).json({ error: "Internal server error" });
+});
 // Test route: checks that the database is reachable
 app.get("/api/health", async (req, res) => {
   try {
