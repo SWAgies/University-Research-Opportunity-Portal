@@ -66,4 +66,15 @@ router.post("/", async (req, res) => {
   }
 });
 
+// READ ALL
+router.get("/", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM opportunities ORDER BY id DESC");
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error while fetching opportunities" });
+  }
+});
+
 module.exports = router;
