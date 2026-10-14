@@ -91,5 +91,38 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ error: "Server error while fetching opportunity" });
   }
 });
+// UPDATE
+router.put("/:id", async (req, res) => {
+  const errors = validate(req.body);
+  if (errors.length > 0) {
+    return res.status(400).json({ errors });
+  }
+
+  const {
+    title, description, research_area, faculty_name,
+    department, required_skills, positions, deadline,
+  } = req.body;
+  const status = req.body.status || "Open";
+
+  try {
+    const [result] = await pool.query(
+      `UPDATE opportunities
+       SET title=?, description=?, research_area=?, faculty_name=?, department=?,
+           required_skills=?, positions=?, deadline=?, status=?
+       WHERE id=?`,
+      [title, description, research_area, faculty_name, department, required_skills, positions, deadline, status, req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Opportunity not found" });
+    }
+
+    const [rows] = await pool.query("SELECT * FROM opportunities WHERE id = ?", [req.params.id]);
+    res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error while updating opportunity" });
+  }
+});
 
 module.exports = router;
